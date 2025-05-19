@@ -17,28 +17,6 @@ New Feature
 
 
 
-## Performance on WIDERFACE
-| Model                                                        | Size | Easy | Medium | Hard | Speed<sup>T4<br/>trt fp16 b1 <br/>(fps) | Speed<sup>T4<br/>trt fp16 b32 <br/>(fps) | Params<br/><sup> (M) | FLOPs<br/><sup> (G) |
-| :----------------------------------------------------------- | ---- | :--- | ------ | ---- | --------------------------------------- | ---------------------------------------- | -------------------- | ------------------- |
-| [**YOLOv6-N**](https://github.com/meituan/YOLOv6/releases/download/0.3.1/yolov6n_face.pt) | 640  | 95.0 | 92.4   | 80.4 | 797                                     | 1313                                     | 4.63                 | 11.35               |
-| [**YOLOv6-S**](https://github.com/meituan/YOLOv6/releases/download/0.3.1/yolov6s_face.pt) | 640  | 96.2 | 94.7   | 85.1 | 339                                     | 484                                      | 12.41                | 32.45               |
-| [**YOLOv6-M**](https://github.com/meituan/YOLOv6/releases/download/0.3.1/yolov6m_face.pt) | 640  | 97.0 | 95.3   | 86.3 | 188                                     | 240                                      | 24.85                | 70.59               |
-| [**YOLOv6-L**](https://github.com/meituan/YOLOv6/releases/download/0.3.1/yolov6l_face.pt) | 640  | 97.2 | 95.9   | 87.5 | 102                                     | 121                                      | 56.77                | 159.24              |
-|                                                              |      |      |        |      |                                         |                                          |                      |                     |
-| [**YOLOv6Lite-S**](https://github.com/meituan/YOLOv6/releases/download/0.4.0/yolov6lite_s_face.pt) | 416  | 89.6 | 84.6   | 58.8 | /                                       | /                                        | 0.53                 | 0.90                |
-| [**YOLOv6Lite-M**](https://github.com/meituan/YOLOv6/releases/download/0.4.0/yolov6lite_m_face.pt) | 416  | 90.6 | 86.1   | 60.6 | /                                       | /                                        | 0.76                 | 1.07                |
-| [**YOLOv6Lite-L**](https://github.com/meituan/YOLOv6/releases/download/0.4.0/yolov6lite_l_face.pt) | 416  | 91.8 | 87.6   | 64.2 | /                                       | /                                        | 1.06                 | 1.40                |
-
-#### Table Notes
-
-- All checkpoints are fine-tuned from COCO pretrained model for 300 epochs without distillation.
-- Results of the mAP and speed are evaluated on [WIDER FACE](http://shuoyang1213.me/WIDERFACE/) dataset with the input resolution of 640×640.
-- Speed is tested with TensorRT 8.2 on T4.
-- Refer to [Test speed](./docs/Test_speed.md) tutorial to reproduce the speed results of YOLOv6.
-- Params and FLOPs of YOLOv6 are estimated on deployed models.
-
-
-
 ## Quick Start
 <details open>
 <summary> Install</summary>
@@ -47,7 +25,6 @@ New Feature
 ```shell
 git clone https://github.com/meituan/YOLOv6
 cd YOLOv6
-git checkout yolov6-face
 pip install -r requirements.txt
 ```
 </details>
@@ -99,10 +76,7 @@ python tools/infer.py --weights yolov6s_face.pt --source ../widerface/images/val
 <details open>
 <summary> Evaluation</summary>
 
-```shell
-cd widerface_evaluate
-python evaluation.py --pred ../runs/inference/widerface_yolov6s/labels/
-```
+
 </details>
 
 <details>
