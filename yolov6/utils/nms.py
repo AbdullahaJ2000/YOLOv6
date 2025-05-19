@@ -10,7 +10,7 @@ import cv2
 import torch
 import torchvision
 
-
+NUMPOINT = N
 # Settings
 torch.set_printoptions(linewidth=320, precision=5, profile='long')
 np.set_printoptions(linewidth=320, formatter={'float_kind': '{:11.5g}'.format})  # format short g, %precision=5
@@ -105,7 +105,7 @@ def non_max_suppression(prediction, conf_thres=0.25, iou_thres=0.45, classes=Non
     return output
 
 
-def non_max_suppression_face(prediction, conf_thres=0.25, iou_thres=0.45, classes=None, agnostic=False, multi_label=False, max_det=300):
+def non_max_suppression_points(prediction, conf_thres=0.25, iou_thres=0.45, classes=None, agnostic=False, multi_label=False, max_det=300):
     """Runs Non-Maximum Suppression (NMS) on inference results.
     This code is borrowed from: https://github.com/ultralytics/yolov5/blob/47233e1698b89fc437a4fb9463c815e9171be955/utils/general.py#L775
     Args:
@@ -120,8 +120,8 @@ def non_max_suppression_face(prediction, conf_thres=0.25, iou_thres=0.45, classe
          list of detections, echo item is one tensor with shape (num_boxes, 16), 16 is for [xyxy, ldmks, conf, cls].
     """
 
-    num_classes = prediction.shape[2] - 15  # number of classes
-    pred_candidates = torch.logical_and(prediction[..., 14] > conf_thres, torch.max(prediction[..., 15:], axis=-1)[0] > conf_thres)  # candidates
+    num_classes = prediction.shape[2] - (NUMPOINT*2+5)  # number of classes
+    pred_candidates = torch.logical_and(prediction[..., (NUMPOINT*2+5)] > conf_thres, torch.max(prediction[..., (NUMPOINT*2+5):], axis=-1)[0] > conf_thres)  # candidates
     # Check the parameters.
     assert 0 <= conf_thres <= 1, f'conf_thresh must be in 0.0 to 1.0, however {conf_thres} is provided.'
     assert 0 <= iou_thres <= 1, f'iou_thres must be in 0.0 to 1.0, however {iou_thres} is provided.'
@@ -133,7 +133,7 @@ def non_max_suppression_face(prediction, conf_thres=0.25, iou_thres=0.45, classe
     multi_label &= num_classes > 1  # multiple labels per box
 
     tik = time.time()
-    output = [torch.zeros((0, 16), device=prediction.device)] * prediction.shape[0]
+    output = [torch.zeros((0, (NUMPOINT*2+6)), device=prediction.device)] * prediction.shape[0]
     for img_idx, x in enumerate(prediction):  # image index, image inference
         x = x[pred_candidates[img_idx]]  # confidence
 
@@ -142,18 +142,19 @@ def non_max_suppression_face(prediction, conf_thres=0.25, iou_thres=0.45, classe
             continue
 
         # confidence multiply the objectness
-        x[:, 15:] *= x[:, 14:15]  # conf = obj_conf * cls_conf
+        x[:, (NUMPOINT*2+5):] *= x[:, (NUMPOINT*2+4):(NUMPOINT*2+5)]  # conf = obj_conf * cls_conf
 
         # (center x, center y, width, height) to (x1, y1, x2, y2)
         box = xywh2xyxy(x[:, :4])
 
         # Detections matrix's shape is  (n,16), each row represents (xyxy, conf, cls, lmdks)
         if multi_label:
-            box_idx, class_idx = (x[:, 15:] > conf_thres).nonzero(as_tuple=False).T
-            x = torch.cat((box[box_idx], x[box_idx, class_idx + 15, None], class_idx[:, None].float(), x[box_idx, 4:14]), 1)
+            box_idx, class_idx = (x[:, (NUMPOINT*2+5):] > conf_thres).nonzero(as_tuple=False).T
+            # x = torch.cat((box[box_idx], x[box_idx, class_idx + 15, None], class_idx[:, None].float(), x[box_idx, 4:14]), 1)
+            x = torch.cat((box[box_idx], x[box_idx, class_idx + (NUMPOINT*2+5), None], class_idx[:, None].float(), x[box_idx, 4:(NUMPOINT*2+4)]), 1)
         else:  # Only keep the class with highest scores.
-            conf, class_idx = x[:, 15:].max(1, keepdim=True)
-            x = torch.cat((box, conf, class_idx.float(), x[:, 4:14]), 1)[conf.view(-1) > conf_thres]
+            conf, class_idx = x[:, (NUMPOINT*2+5):].max(1, keepdim=True)
+            x = torch.cat((box, conf, class_idx.float(), x[:, 4:(NUMPOINT*2+4)]), 1)[conf.view(-1) > conf_thres]
 
         # Filter by class, only keep boxes whose category is in classes.
         if classes is not None:

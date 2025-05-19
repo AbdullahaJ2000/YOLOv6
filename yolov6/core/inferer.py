@@ -20,6 +20,8 @@ from yolov6.data.datasets import LoadData
 from yolov6.utils.nms import non_max_suppression_face
 from yolov6.utils.torch_utils import get_model_info
 
+NUMPOINT = N
+
 class Inferer:
     def __init__(self, source, webcam, webcam_addr, weights, device, yaml, img_size, half):
 
@@ -99,7 +101,7 @@ class Inferer:
             self.font_check()
 
             if len(det):
-                det[:, :4], det[:, -10:] = self.rescale(img.shape[2:], det[:, :4], det[:, -10:], img_src.shape)
+                det[:, :4], det[:, -(NUMPOINT*2):] = self.rescale(img.shape[2:], det[:, :4], det[:, -(NUMPOINT*2):], img_src.shape)
             if save_txt_widerface:
                 with open(txt_path + '.txt', 'w') as f:
                     file_name = os.path.basename(img_path)[:-4] + "\n"
@@ -204,20 +206,23 @@ class Inferer:
         boxes[:, 3].clamp_(0, target_shape[0])  # y2
 
         #lmdks 
-        lmdks[:, [0, 2, 4, 6, 8]] -= padding[0]
-        lmdks[:, [1, 3, 5, 7, 9]] -= padding[1]
-        lmdks[:, :10] /= ratio
+        lmdks[:, list(range(0,NUMPOINT*2,2))] -= padding[0]
+        lmdks[:, list(range(1,NUMPOINT*2,2))] -= padding[1]
+        lmdks[:, :(NUMPOINT*2)] /= ratio
 
-        lmdks[:, 0].clamp_(0, target_shape[1])
-        lmdks[:, 1].clamp_(0, target_shape[0])
-        lmdks[:, 2].clamp_(0, target_shape[1])
-        lmdks[:, 3].clamp_(0, target_shape[0])
-        lmdks[:, 4].clamp_(0, target_shape[1])
-        lmdks[:, 5].clamp_(0, target_shape[0])
-        lmdks[:, 6].clamp_(0, target_shape[1])
-        lmdks[:, 7].clamp_(0, target_shape[0])
-        lmdks[:, 8].clamp_(0, target_shape[1])
-        lmdks[:, 9].clamp_(0, target_shape[0])
+        # lmdks[:, 0].clamp_(0, target_shape[1])
+        # lmdks[:, 1].clamp_(0, target_shape[0])
+        # lmdks[:, 2].clamp_(0, target_shape[1])
+        # lmdks[:, 3].clamp_(0, target_shape[0])
+        # lmdks[:, 4].clamp_(0, target_shape[1])
+        # lmdks[:, 5].clamp_(0, target_shape[0])
+        # lmdks[:, 6].clamp_(0, target_shape[1])
+        # lmdks[:, 7].clamp_(0, target_shape[0])
+        # lmdks[:, 8].clamp_(0, target_shape[1])
+        # lmdks[:, 9].clamp_(0, target_shape[0])
+        markpoint = NUMPOINT *2
+        for i in range(markpoint):
+            lmdks[:,i].clamp_(0,target_shape[1] if i%2 == 0 else target_shape[0])
 
         return boxes.round(), lmdks.round()
 
@@ -276,7 +281,7 @@ class Inferer:
         p1, p2 = (int(box[0]), int(box[1])), (int(box[2]), int(box[3]))
         cv2.rectangle(image, p1, p2, color, thickness=lw, lineType=cv2.LINE_AA)
         colors = [(255,0,0),(0,255,0),(0,0,255),(255,255,0),(0,255,255)]
-        for i in range(5):
+        for i in range(NUMPOINT):
             cv2.circle(image, (int(landmarks[2*i]), int(landmarks[2*i+1])), lw+1, colors[i], -1)
         if label:
             tf = max(lw - 1, 1)  # font thickness

@@ -3,6 +3,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 from yolov6.assigners.assigner_utils import select_candidates_in_gts, select_highest_overlaps, iou_calculator, dist_calculator
 
+NUMPOINT = N
+
 class TaskAlignedAssigner(nn.Module):
     def __init__(self,
                  topk=13,
@@ -169,7 +171,7 @@ class TaskAlignedAssigner(nn.Module):
 
         # assigned target boxes
         target_bboxes = gt_bboxes.reshape([-1, 4])[target_gt_idx]
-        target_ldmks = gt_ldmks.reshape([-1, 10])[target_gt_idx]
+        target_ldmks = gt_ldmks.reshape([-1, (NUMPOINT*2)])[target_gt_idx]
 
         # assigned target scores
         target_labels[target_labels<0] = 0
