@@ -11,13 +11,11 @@ Implementation based on [YOLOv6 v3.0 code](https://github.com/meituan/YOLOv6/tre
 
 
 New Feature
-- Face-landmarks localization
+- pose-detection
 - Repulsion loss
 - Same-channel Dehead
 
-<p align="center">
-  <img src="assets/test_result.jpg" align="middle" width = "800" />
-</p>
+
 
 ## Performance on WIDERFACE
 | Model                                                        | Size | Easy | Medium | Hard | Speed<sup>T4<br/>trt fp16 b1 <br/>(fps) | Speed<sup>T4<br/>trt fp16 b32 <br/>(fps) | Params<br/><sup> (M) | FLOPs<br/><sup> (G) |
